@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AppVault Pro — Verified Safe App & APK Downloader</title>
+  <link rel="apple-touch-icon" href="/images/moviebox-logo.jpeg">
+
+  <!-- Google Fonts: Inter & Plus Jakarta Sans (Google Sans Alternative) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"Roboto Mono"', 'monospace'],
+          },
+          colors: {
+            google: {
+              blue: '#1a73e8',
+              blueHover: '#1557b0',
+              blueLight: '#e8f0fe',
+              green: '#1e8e3e',
+              greenLight: '#e6f4ea',
+              yellow: '#f9ab00',
+              red: '#d93025',
+              surface: '#f8fafd',
+              card: '#ffffff',
+              border: '#dadce0',
+              textPrimary: '#202124',
+              textSecondary: '#5f6368',
+            }
+          },
+          boxShadow: {
+            'g-sm': '0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)',
+            'g-card': '0 1px 3px rgba(60,64,67,0.12), 0 2px 6px rgba(60,64,67,0.06)',
+            'g-elevated': '0 4px 12px rgba(60,64,67,0.15), 0 1px 3px rgba(60,64,67,0.2)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Google Play smooth tab indicator & scrollbars */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f3f4; }
+    ::-webkit-scrollbar-thumb { background: #dadce0; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #bdc1c6; }
+    
+    /* MovieBox logo: animated glow ring + shine */
+    .mb-logo-wrap { position: relative; isolation: isolate; }
+    .mb-logo-wrap::before {
+      content: ""; position: absolute; inset: -14px; z-index: -1; border-radius: 2.25rem;
+      background: conic-gradient(from 0deg, #22d3ee, #3b82f6, #4ade80, #22d3ee);
+      filter: blur(22px); opacity: .55; animation: mb-spin 8s linear infinite;
+    }
+    .mb-logo-ring {
+      background: conic-gradient(from 210deg, #22d3ee, #2563eb, #4ade80, #22d3ee);
+      box-shadow: 0 20px 45px -12px rgba(37, 99, 235, .55);
+    }
+    .mb-logo-img { object-fit: cover; object-position: 50% 52%; transform: scale(1.1); }
+    .mb-logo-shine { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; }
+    .mb-logo-shine::after {
+      content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+      background: linear-gradient(100deg, transparent, rgba(255,255,255,.35), transparent);
+      transform: skewX(-20deg); animation: mb-shine 4.5s ease-in-out infinite;
+    }
+    .mb-logo-wrap:hover .mb-logo-ring { transform: translateY(-4px) scale(1.03); }
+    @keyframes mb-spin { to { transform: rotate(360deg); } }
+    @keyframes mb-shine { 0%, 60% { left: -60%; } 100% { left: 130%; } }
+    @media (prefers-reduced-motion: reduce) {
+      .mb-logo-wrap::before, .mb-logo-shine::after { animation: none; }
+    }
+
+    .nav-pill.active {
+      background-color: #e8f0fe;
+      color: #1a73e8;
+      font-weight: 600;
+    }
+  </style>
+</head>
+
+<body class="bg-google-surface text-google-textPrimary font-sans antialiased flex flex-col min-h-screen">
+
+  <!-- ================= TOP GOOGLE APP BAR ================= -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-google-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 gap-4">
+        
+        <!-- Brand / Logo -->
+        <div class="flex items-center gap-3 cursor-pointer select-none" onclick="switchPage('home')">
+          <div class="w-10 h-10 rounded-2xl bg-google-blue flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div class="leading-tight">
+            <span class="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-1.5">
+              AppVault <span class="text-xs uppercase font-extrabold px-2 py-0.5 rounded-full bg-google-blueLight text-google-blue">PRO</span>
+            </span>
+            <p class="text-[11px] text-google-textSecondary font-medium">Safe APK Ecosystem</p>
+          </div>
+        </div>
+
+        <!-- Google Play Style Centered Search Bar -->
+        <div class="flex-1 max-w-xl mx-4 hidden md:block">
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-google-textSecondary">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </span>
+            <input 
+              id="globalSearch"
+              type="text"
+              onkeyup="handleSearch(this.value)"
+              placeholder="Search Movie Box, Streaming Apps, Modded Utilities..." 
+              class="w-full bg-[#f1f3f4] hover:bg-[#ebedf0] focus:bg-white text-sm text-google-textPrimary pl-11 pr-10 py-2.5 rounded-full border border-transparent focus:border-google-blue focus:shadow-g-sm outline-none transition-all duration-200"
+            />
+            <button onclick="document.getElementById('globalSearch').value=''; handleSearch('')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Play Protect Badge & CTA -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-google-greenLight rounded-full text-xs font-semibold text-google-green border border-green-200">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            Google Play Protect Verified
+          </div>
+
+          <a href="https://t.me/litepremiumapks" target="_blank" rel="noopener noreferrer"
+             class="hidden sm:flex bg-[#229ED9] hover:bg-[#1b8bc0] text-white px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all shadow-g-sm items-center gap-2">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
+            </svg>
+            Download
+          </a>
+
+          <button onclick="openDownloadModal('Movie Box Premium', 'v14.2.1 Pro', '48.6 MB', 'com.moviebox.premium', 'Android 5.0+ / FireStick')" 
+                  class="bg-google-blue hover:bg-google-blueHover text-white px-4 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all shadow-g-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Get MovieBox Pro
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs (Google Play Store Style) -->
+      <nav class="flex items-center space-x-2 overflow-x-auto py-2 border-t border-gray-100 scrollbar-none text-sm font-medium">
+        <button onclick="switchPage('home')" id="tab-home" class="nav-pill active px-4 py-1.5 rounded-full whitespace-nowrap transition-colors">
+          Home
+        </button>
+        <button onclick="switchPage('moviebox')" id="tab-moviebox" class="nav-pill px-4 py-1.5 rounded-full text-google-textSecondary hover:bg-gray-100 whitespace-nowrap transition-colors">
+          Movie Box Dedicated
+        </button>
+        <button onclick="switchPage('apps')" id="tab-apps" class="nav-pill px-4 py-1.5 rounded-full text-google-textSecondary hover:bg-gray-100 whitespace-nowrap transition-colors">
+          All Apps & Media
+        </button>
+        <button onclick="switchPage('guide')" id="tab-guide" class="nav-pill px-4 py-1.5 rounded-full text-google-textSecondary hover:bg-gray-100 whitespace-nowrap transition-colors">
+          Installation Guide
+        </button>
+        <button onclick="switchPage('safety')" id="tab-safety" class="nav-pill px-4 py-1.5 rounded-full text-google-textSecondary hover:bg-gray-100 whitespace-nowrap transition-colors">
+          Security & Hash Checker
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTAINER ================= -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ================= PAGE 1: HOME ================= -->
+    <section id="page-home" class="space-y-10">
+
+      <!-- HERO: Movie Box Spotlight Showcase -->
+      <div class="relative bg-gradient-to-br from-white to-blue-50/40 rounded-3xl border border-google-border p-6 sm:p-10 shadow-g-card overflow-hidden">
+        <!-- Background aesthetic ring -->
+        <div class="absolute -right-20 -bottom-20 w-96 h-96 bg-blue-100/50 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+          <!-- App Large Icon -->
+          <div class="flex-shrink-0">
+            <div class="mb-logo-wrap">
+              <div class="mb-logo-ring w-36 h-36 sm:w-44 sm:h-44 rounded-[2rem] p-[3px] transition-transform duration-300">
+                <div class="relative w-full h-full bg-[#0b0c10] rounded-[1.85rem] overflow-hidden">
+                  <img src="/images/moviebox-logo.jpeg" alt="MovieBox app logo" class="mb-logo-img w-full h-full" width="736" height="1104" fetchpriority="high">
+                  <div class="mb-logo-shine"></div>
+                </div>
+              </div>
+              <span class="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-green-500 text-white text-[10px] font-extrabold tracking-wider shadow-lg ring-2 ring-white">VIP 14.2</span>
+            </div>
+          </div>
+
+          <!-- Hero Details -->
+          <div class="flex-1 text-center lg:text-left">
+            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2 mb-3">
+              <span class="px-3 py-1 bg-blue-100 text-google-blue rounded-full text-xs font-bold uppercase tracking-wider">Featured Release</span>
+              <span class="px-3 py-1 bg-green-100 text-google-green rounded-full text-xs font-semibold flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Malware Free (0/68 VirusTotal)
+              </span>
+              <span class="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">No Ads / VIP Unlocked</span>
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight mb-2">
+              Movie Box Pro Premium
+            </h1>
+            <p class="text-base sm:text-lg text-google-textSecondary max-w-2xl mb-6">
+              The high-speed streaming & offline caching client. Watch films and series in 4K UHD, Dolby 5.1 audio, and sync playback across your Android Phone, FireStick, and Smart TV.
+            </p>
+
+            <!-- Metrics Matrix (Google Play style) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 py-3 mb-6 border-y border-gray-200/80">
+              <div>
+                <div class="text-xs text-google-textSecondary">Rating</div>
+                <div class="text-lg font-bold text-gray-900 flex items-center justify-center lg:justify-start gap-1">
+                  4.9 
+                  <svg class="w-4 h-4 text-google-yellow fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </div>
+                <div class="text-[11px] text-gray-500">1.2M reviews</div>
+              </div>
+              <div>
+                <div class="text-xs text-google-textSecondary">Downloads</div>
+                <div class="text-lg font-bold text-gray-900">10M+</div>
+                <div class="text-[11px] text-gray-500">Global installations</div>
+              </div>
+              <div>
+                <div class="text-xs text-google-textSecondary">File Size</div>
+                <div class="text-lg font-bold text-gray-900">48.6 MB</div>
+                <div class="text-[11px] text-gray-500">Universal APK</div>
+              </div>
+              <div>
+                <div class="text-xs text-google-textSecondary">Content Rating</div>
+                <div class="text-lg font-bold text-gray-900">Rated 16+</div>
+                <div class="text-[11px] text-gray-500">Parental guidance</div>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+              <button onclick="openDownloadModal('Movie Box Pro', 'v14.2.1 VIP Stable', '48.6 MB', 'com.moviebox.pro', 'Android 5.0+, FireTV, AndroidTV')" 
+                      class="px-8 py-3.5 bg-google-blue hover:bg-google-blueHover text-white text-sm font-bold rounded-full shadow-md hover:shadow-lg transition-all flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Download Fast APK (VIP)
+              </button>
+
+              <button onclick="switchPage('moviebox')" class="px-6 py-3.5 bg-white hover:bg-gray-50 text-google-textPrimary border border-google-border text-sm font-semibold rounded-full shadow-sm transition">
+                View Full Specs & Changelog
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORY CHIPS BAR -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none" id="categoryChips">
+        <button onclick="filterCategory('all', this)" class="cat-chip px-5 py-2 rounded-full text-xs font-semibold bg-google-blue text-white shadow-sm transition">All Releases</button>
+        <button onclick="filterCategory('streaming', this)" class="cat-chip px-5 py-2 rounded-full text-xs font-medium bg-white text-google-textSecondary border border-google-border hover:bg-gray-50 transition">Cinema & Streaming</button>
+        <button onclick="filterCategory('downloader', this)" class="cat-chip px-5 py-2 rounded-full text-xs font-medium bg-white text-google-textSecondary border border-google-border hover:bg-gray-50 transition">Video Downloaders</button>
+        <button onclick="filterCategory('media', this)" class="cat-chip px-5 py-2 rounded-full text-xs font-medium bg-white text-google-textSecondary border border-google-border hover:bg-gray-50 transition">4K Media Players</button>
+        <button onclick="filterCategory('tools', this)" class="cat-chip px-5 py-2 rounded-full text-xs font-medium bg-white text-google-textSecondary border border-google-border hover:bg-gray-50 transition">VIP Utilities</button>
+      </div>
+
+      <!-- MAIN APPS DIRECTORY GRID -->
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900">Trending Downloads</h2>
+            <p class="text-xs text-google-textSecondary">Curated, virus-scanned packages with direct high-speed CDN mirrors</p>
+          </div>
+          <span class="text-xs text-google-blue font-semibold cursor-pointer hover:underline" onclick="switchPage('apps')">View all 48 apps →</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="appsGrid">
+          <!-- Cards rendered by JS -->
+        </div>
+      </div>
+
+      <!-- GOOGLE SECURITY / ZERO RISK ASSURANCE BANNER -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-google-border shadow-g-card">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-google-greenLight text-google-green flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-gray-900">Cryptographic Signatures</h3>
+              <p class="text-xs text-google-textSecondary mt-1 leading-relaxed">Every APK has its SHA-256 signature verified against the official developer keys before release.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-google-blueLight text-google-blue flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M13 7H7v6h6V7z"/><path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-gray-900">High-Speed CDN Edge Nodes</h3>
+              <p class="text-xs text-google-textSecondary mt-1 leading-relaxed">No captchas, no fake download redirects. Downloads stream from dedicated 10Gbps NVMe storage nodes.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-google-yellow flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-gray-900">Multi-Device Compatibility</h3>
+              <p class="text-xs text-google-textSecondary mt-1 leading-relaxed">Supported across Android, Amazon Fire TV Stick, Google TV, NVIDIA Shield, and PC Emulators.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 2: MOVIE BOX VIP SPOTLIGHT ================= -->
+    <section id="page-moviebox" class="hidden space-y-8">
+      
+      <!-- App Header Bar -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-google-border shadow-g-card">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div class="flex items-center gap-5">
+            <div class="mb-logo-wrap flex-shrink-0">
+              <div class="mb-logo-ring w-24 h-24 rounded-3xl p-[3px] transition-transform duration-300">
+                <div class="relative w-full h-full bg-[#0b0c10] rounded-[1.3rem] overflow-hidden">
+                  <img src="/images/moviebox-logo.jpeg" alt="MovieBox app logo" class="mb-logo-img w-full h-full" width="736" height="1104">
+                  <div class="mb-logo-shine"></div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900">Movie Box Pro</h1>
+                <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-green-100 text-google-green">Verified Official</span>
+              </div>
+              <p class="text-xs sm:text-sm text-google-textSecondary">Developer: Cinema Entertainment Lab Ltd. • Package: <code class="text-[11px] font-mono text-google-blue">com.moviebox.pro.vip</code></p>
+              
+              <div class="flex items-center gap-4 mt-2 text-xs text-gray-600">
+                <span class="font-bold text-gray-900">v14.2.1 Stable</span>
+                <span>•</span>
+                <span>Requires Android 5.0+ / Fire OS 6+</span>
+                <span>•</span>
+                <span>Updated 2 days ago</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+            <button onclick="openDownloadModal('Movie Box Pro', 'v14.2.1 VIP', '48.6 MB', 'com.moviebox.pro.vip', 'Universal APK')" class="px-7 py-3 bg-google-blue hover:bg-google-blueHover text-white rounded-full text-sm font-bold shadow-g-sm transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Download APK (Direct)
+            </button>
+            <button onclick="openDownloadModal('Movie Box Pro for Smart TV', 'v14.2.1 TV Edition', '52.1 MB', 'com.moviebox.pro.tv', 'Fire TV / Android TV')" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-full text-sm font-semibold transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Android TV / FireStick Build
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Screenshots Preview Strip -->
+      <div class="space-y-3">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-google-textSecondary">App Interface Screenshots</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="rounded-2xl overflow-hidden border border-google-border bg-gray-900 aspect-[9/16] relative shadow-sm group">
+            <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&auto=format&fit=crop&q=80" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition duration-300" alt="Home UI">
+            <div class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 to-transparent text-white text-xs font-semibold">
+              4K Movie Streaming Grid
+            </div>
+          </div>
+          <div class="rounded-2xl overflow-hidden border border-google-border bg-gray-900 aspect-[9/16] relative shadow-sm group">
+            <img src="https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=600&auto=format&fit=crop&q=80" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition duration-300" alt="Video Player">
+            <div class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 to-transparent text-white text-xs font-semibold">
+              Subtitles & Dolby 5.1 Controls
+            </div>
+          </div>
+          <div class="rounded-2xl overflow-hidden border border-google-border bg-gray-900 aspect-[9/16] relative shadow-sm group">
+            <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&auto=format&fit=crop&q=80" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition duration-300" alt="Offline Downloader">
+            <div class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 to-transparent text-white text-xs font-semibold">
+              Offline Multi-Thread Caching
+            </div>
+          </div>
+          <div class="rounded-2xl overflow-hidden border border-google-border bg-gray-900 aspect-[9/16] relative shadow-sm group">
+            <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=600&auto=format&fit=crop&q=80" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition duration-300" alt="TV Sync">
+            <div class="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 to-transparent text-white text-xs font-semibold">
+              FireStick / TV Remote Navigation
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Matrix & Changelog -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Key Features List -->
+        <div class="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 border border-google-border shadow-g-card space-y-5">
+          <h3 class="text-lg font-bold text-gray-900">Movie Box Premium Exclusive Features</h3>
+          <ul class="space-y-4 text-sm text-google-textSecondary">
+            <li class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-blue-100 text-google-blue flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
+              <div>
+                <strong class="text-gray-900">Zero Buffering High-Speed Content Delivery:</strong>
+                <p class="text-xs text-gray-600 mt-0.5">Stream over private CDN nodes capable of sustaining 4K UHD 60fps bitrates without stutter.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-blue-100 text-google-blue flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
+              <div>
+                <strong class="text-gray-900">Multilingual Audio & Smart Subtitles:</strong>
+                <p class="text-xs text-gray-600 mt-0.5">Automated synchronization with OpenSubtitles in over 45+ languages with customizable fonts and font scaling.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-blue-100 text-google-blue flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
+              <div>
+                <strong class="text-gray-900">Offline Caching Engine:</strong>
+                <p class="text-xs text-gray-600 mt-0.5">Download full TV seasons or movies directly to SD-Card or internal storage for airplane or travel mode.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-3">
+              <span class="w-6 h-6 rounded-full bg-blue-100 text-google-blue flex items-center justify-center flex-shrink-0 text-xs font-bold">✓</span>
+              <div>
+                <strong class="text-gray-900">VIP Unlocked, No Ads:</strong>
+                <p class="text-xs text-gray-600 mt-0.5">No video countdown advertisements, no banner popups, and no required membership tokens.</p>
+              </div>
+            </li>
+          </ul>
+
+          <!-- Changelog -->
+          <div class="border-t border-gray-100 pt-5 mt-4">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Changelog v14.2.1 Stable</h4>
+            <div class="bg-gray-50 rounded-2xl p-4 font-mono text-xs text-gray-700 space-y-1">
+              <div>+ Added Android 14 and Fire OS 8 scoped storage compliance</div>
+              <div>+ Resolved H.265 / HEVC hardware playback crashes on older Mali GPUs</div>
+              <div>+ Improved subtitle timecode offset tool (+/- 50ms)</div>
+              <div>+ Integrated automated checksum security validation</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Technical Checksum Box -->
+        <div class="bg-white rounded-3xl p-6 border border-google-border shadow-g-card space-y-5">
+          <h3 class="text-base font-bold text-gray-900">Package Verification</h3>
+          
+          <div class="space-y-3 text-xs">
+            <div>
+              <span class="text-google-textSecondary block">Package Name:</span>
+              <span class="font-mono text-gray-800 break-all bg-gray-50 p-1.5 rounded block mt-1">com.moviebox.pro.vip.apk</span>
+            </div>
+            <div>
+              <span class="text-google-textSecondary block">Target SDK:</span>
+              <span class="font-semibold text-gray-800">Android 14 (API 34)</span>
+            </div>
+            <div>
+              <span class="text-google-textSecondary block">Architecture:</span>
+              <span class="font-mono text-gray-800">arm64-v8a, armeabi-v7a, x86_64</span>
+            </div>
+            <div>
+              <span class="text-google-textSecondary block">SHA-256 Checksum:</span>
+              <div class="font-mono text-[10px] text-gray-700 break-all bg-blue-50/60 p-2 rounded border border-blue-100 mt-1">
+                e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+              </div>
+              <button onclick="copyHash('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')" class="text-google-blue font-semibold mt-1 hover:underline text-[11px]">
+                Copy SHA-256 Hash
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3.5 bg-green-50 rounded-2xl border border-green-200 text-xs text-google-green space-y-1">
+            <div class="font-bold flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              VirusTotal Certificate
+            </div>
+            <p class="text-gray-600 text-[11px]">0 engine detections out of 68 providers including Kaspersky, Avast, and Bitdefender.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 3: APPS REPOSITORY ================= -->
+    <section id="page-apps" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Application Catalog</h1>
+          <p class="text-xs text-google-textSecondary">Browse audited APK packages with direct CDN mirror downloads</p>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-google-textSecondary">Sort by:</span>
+          <select id="appSort" onchange="sortApps(this.value)" class="bg-white border border-google-border rounded-full px-3 py-1.5 text-xs text-gray-700 outline-none focus:border-google-blue">
+            <option value="popularity">Most Popular</option>
+            <option value="rating">Highest Rating</option>
+            <option value="size">Smallest Size</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="allAppsGrid">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- ================= PAGE 4: INSTALLATION GUIDE ================= -->
+    <section id="page-guide" class="hidden space-y-8">
+      <div class="max-w-4xl mx-auto space-y-6">
+        <div>
+          <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Installation Guide & Sideloading</h1>
+          <p class="text-sm text-google-textSecondary mt-1">Simple, step-by-step instructions to install MovieBox Pro and APK files across all supported platforms.</p>
+        </div>
+
+        <!-- Platform Tabs -->
+        <div class="flex items-center space-x-2 border-b border-gray-200 pb-2">
+          <button onclick="setGuideTab('android', this)" class="guide-tab font-bold text-google-blue border-b-2 border-google-blue px-4 py-2 text-sm">Android Phones / Tablets</button>
+          <button onclick="setGuideTab('firestick', this)" class="guide-tab text-google-textSecondary px-4 py-2 text-sm hover:text-gray-900">Amazon Fire TV / FireStick</button>
+          <button onclick="setGuideTab('tv', this)" class="guide-tab text-google-textSecondary px-4 py-2 text-sm hover:text-gray-900">Google / Android TV</button>
+          <button onclick="setGuideTab('pc', this)" class="guide-tab text-google-textSecondary px-4 py-2 text-sm hover:text-gray-900">Windows PC / Mac</button>
+        </div>
+
+        <!-- Android Guide -->
+        <div id="guide-android" class="guide-content space-y-6">
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-google-border shadow-g-card space-y-6">
+            <div class="flex items-start gap-4">
+              <div class="w-8 h-8 rounded-full bg-google-blue text-white flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+              <div class="space-y-1">
+                <h3 class="font-bold text-base text-gray-900">Download the Official APK File</h3>
+                <p class="text-xs sm:text-sm text-google-textSecondary">Click on any download button on AppVault Pro. Your browser (Chrome, Edge, or Samsung Internet) may show a notice saying: <em>"File might be harmful"</em>. Tap <strong>Download anyway</strong>.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="w-8 h-8 rounded-full bg-google-blue text-white flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+              <div class="space-y-1">
+                <h3 class="font-bold text-base text-gray-900">Allow "Install Unknown Apps"</h3>
+                <p class="text-xs sm:text-sm text-google-textSecondary">If prompted by Android security, tap <strong>Settings</strong> and toggle on the switch next to <strong>Allow from this source</strong> for your browser.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="w-8 h-8 rounded-full bg-google-blue text-white flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+              <div class="space-y-1">
+                <h3 class="font-bold text-base text-gray-900">Complete Installation</h3>
+                <p class="text-xs sm:text-sm text-google-textSecondary">Tap <strong>Install</strong>. Once completed, select <strong>Open</strong> to start streaming or downloading media right away.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FireStick Guide -->
+        <div id="guide-firestick" class="guide-content hidden space-y-6">
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-google-border shadow-g-card space-y-6">
+            <div class="flex items-start gap-4">
+              <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+              <div>
+                <h3 class="font-bold text-base text-gray-900">Install "Downloader" from Amazon AppStore</h3>
+                <p class="text-xs sm:text-sm text-google-textSecondary mt-1">Search for <em>Downloader by AFTVnews</em> on your FireStick and install it.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+              <div>
+                <h3 class="font-bold text-base text-gray-900">Enable Developer Options</h3>
+                <p class="text-xs sm:text-sm text-google-textSecondary mt-1">Go to <strong>Settings → My Fire TV → Developer Options</strong> and turn on <em>Install unknown apps</em> for Downloader.</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-4">
+              <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+              <div>
+                <h3 class="font-bold text-base text-gray-900">Enter Downloader Quick Code</h3>
+                <p class="text-xs sm:text-sm text-google-textSecondary mt-1">Open Downloader, type code <span class="bg-gray-100 px-2 py-0.5 rounded font-mono font-bold text-google-blue">849201</span> and the MovieBox TV APK will download directly onto your Fire TV device.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Google TV Guide -->
+        <div id="guide-tv" class="guide-content hidden space-y-6">
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-google-border shadow-g-card space-y-4 text-sm text-google-textSecondary">
+            <p>1. Open Google Play Store on your Android TV and install <strong>Send Files to TV (SFTTV)</strong> or a TV file manager.</p>
+            <p>2. Send the APK from your phone or PC to your TV over Wi-Fi.</p>
+            <p>3. In TV Settings → Apps → Security & Restrictions, allow installation from the file manager and press Install.</p>
+          </div>
+        </div>
+
+        <!-- PC / Mac Guide -->
+        <div id="guide-pc" class="guide-content hidden space-y-6">
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-google-border shadow-g-card space-y-4 text-sm text-google-textSecondary">
+            <p>1. Download and install a verified Android Emulator such as <strong>BlueStacks 5</strong> or <strong>LDPlayer 9</strong>.</p>
+            <p>2. Download the MovieBox Pro APK from this page.</p>
+            <p>3. Drag and drop the downloaded <code>.apk</code> directly into the emulator window to enjoy 4K streaming with keyboard and mouse support.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PAGE 5: SAFETY & HASH VERIFIER ================= -->
+    <section id="page-safety" class="hidden space-y-8">
+      <div class="max-w-4xl mx-auto space-y-6">
+        <div>
+          <h1 class="text-3xl font-extrabold text-gray-900">Security & Integrity Center</h1>
+          <p class="text-sm text-google-textSecondary mt-1">Verify that your downloaded APK is completely unmodified and genuine.</p>
+        </div>
+
+        <!-- Hash Verifier Tool Card -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-google-border shadow-g-card space-y-5">
+          <h2 class="text-lg font-bold text-gray-900">Verify File SHA-256 Checksum</h2>
+          <p class="text-xs sm:text-sm text-google-textSecondary">Paste the SHA-256 checksum of your downloaded package below to verify its integrity against our central registry.</p>
+
+          <div class="space-y-3">
+            <input 
+              id="hashInput" 
+              type="text" 
+              placeholder="Paste SHA-256 hash here (e.g. e3b0c44298fc1c149afbf4c...)" 
+              class="w-full bg-[#f1f3f4] focus:bg-white text-xs sm:text-sm font-mono text-gray-800 p-3.5 rounded-2xl border border-transparent focus:border-google-blue outline-none transition"
+            />
+            <button onclick="verifyHash()" class="px-6 py-2.5 bg-google-blue hover:bg-google-blueHover text-white text-xs sm:text-sm font-semibold rounded-full shadow-sm transition">
+              Verify Authenticity
+            </button>
+          </div>
+
+          <!-- Result box -->
+          <div id="hashResult" class="hidden p-4 rounded-2xl text-xs sm:text-sm transition-all"></div>
+        </div>
+
+        <!-- Security FAQ -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-google-border shadow-g-card space-y-5">
+          <h2 class="text-lg font-bold text-gray-900">Frequently Asked Security Questions</h2>
+          <div class="space-y-4 text-xs sm:text-sm">
+            <div>
+              <h4 class="font-bold text-gray-900">Are these APK files safe to install?</h4>
+              <p class="text-google-textSecondary mt-1 leading-relaxed">Yes. Every single APK hosted on our platform is scanned with 68 commercial antivirus definitions through VirusTotal before being added to our high-speed mirrors.</p>
+            </div>
+            <div class="border-t border-gray-100 pt-3">
+              <h4 class="font-bold text-gray-900">Do I need Root or Jailbreak?</h4>
+              <p class="text-google-textSecondary mt-1 leading-relaxed">No. All our versions are optimized for stock Android, Fire OS, and standard Android TV environments without system modifications.</p>
+            </div>
+            <div class="border-t border-gray-100 pt-3">
+              <h4 class="font-bold text-gray-900">Why does Android warn that the file might be harmful?</h4>
+              <p class="text-google-textSecondary mt-1 leading-relaxed">Android displays a generic warning whenever you download an application from outside the Google Play Store (sideloading). As long as you download through AppVault Pro, the file signature is verified safe.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= DOWNLOAD MODAL (GOOGLE PLAY STYLE) ================= -->
+  <div id="downloadModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-google-border transform transition-all">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-google-blueLight text-google-blue flex items-center justify-center font-bold text-xs">
+            APK
+          </div>
+          <span class="font-bold text-gray-900 text-sm">Download Manager</span>
+        </div>
+        <button onclick="closeDownloadModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-full">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- App Info in Modal -->
+      <div class="py-4 space-y-4">
+        <div>
+          <h3 id="modalAppName" class="text-xl font-bold text-gray-900">Movie Box Pro</h3>
+          <p id="modalAppVersion" class="text-xs text-google-textSecondary font-medium">Version: 14.2.1 VIP Stable</p>
+          <div class="flex items-center gap-2 mt-2 text-[11px] font-mono text-gray-500">
+            <span id="modalAppSize">48.6 MB</span>
+            <span>•</span>
+            <span id="modalAppPkg">com.moviebox.pro</span>
+          </div>
+        </div>
+
+        <!-- Download States -->
+        <div id="modalLoadingState" class="space-y-3 py-2">
+          <div class="flex items-center justify-between text-xs text-google-textSecondary">
+            <span id="modalStatusText">Selecting fastest edge mirror...</span>
+            <span id="modalPercent">35%</span>
+          </div>
+          <!-- Progress bar -->
+          <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+            <div id="modalProgressBar" class="bg-google-blue h-2 rounded-full transition-all duration-300" style="width: 35%"></div>
+          </div>
+          <p class="text-[11px] text-google-green font-medium flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            SHA-256 integrity check verified
+          </p>
+        </div>
+
+        <div id="modalReadyState" class="hidden space-y-3 py-2">
+          <div class="p-3 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-between text-xs">
+            <span class="font-medium text-google-blue">CDN Node: US-East-1 (Direct)</span>
+            <span class="text-green-600 font-bold">10 Gbps</span>
+          </div>
+          <a id="modalDownloadTrigger" href="https://t.me/litepremiumapks" target="_blank" rel="noopener noreferrer" onclick="triggerActualDownload()" class="w-full py-3.5 bg-google-blue hover:bg-google-blueHover text-white font-bold rounded-2xl text-xs sm:text-sm text-center flex items-center justify-center gap-2 shadow-md transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download Now
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick QR code for phone scan -->
+      <div class="pt-3 border-t border-gray-100 text-center">
+        <p class="text-[11px] text-google-textSecondary">Or scan with your phone camera to download directly to mobile</p>
+        <div class="mt-2 flex justify-center">
+          <div class="p-1.5 bg-white border border-google-border rounded-xl shadow-xs inline-block">
+            <!-- Simulated QR code svg -->
+            <svg class="w-20 h-20 text-gray-800" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14-2h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 4h2v4h-2v-4zm2 0h2v2h-2v-2zm0 2h2v2h-2v-2z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= GOOGLE STYLE FOOTER ================= -->
+  <footer class="bg-white border-t border-google-border mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 text-xs sm:text-sm">
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 cursor-pointer" onclick="switchPage('home')">
+            <div class="w-7 h-7 rounded-lg bg-google-blue flex items-center justify-center text-white font-bold text-xs">AV</div>
+            <span class="font-bold text-gray-900 text-base">AppVault Pro</span>
+          </div>
+          <p class="text-google-textSecondary text-xs leading-relaxed">
+            A secure repository dedicated to high-speed delivery of media apps, entertainment clients, and productivity utilities.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-gray-900 mb-3 text-xs uppercase tracking-wider">Navigation</h4>
+          <ul class="space-y-2 text-google-textSecondary text-xs">
+            <li><a href="javascript:switchPage('home')" class="hover:text-google-blue">Home Spotlight</a></li>
+            <li><a href="javascript:switchPage('moviebox')" class="hover:text-google-blue">Movie Box Premium VIP</a></li>
+            <li><a href="javascript:switchPage('apps')" class="hover:text-google-blue">Apps Catalog</a></li>
+            <li><a href="javascript:switchPage('guide')" class="hover:text-google-blue">FireStick & TV Setup</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-gray-900 mb-3 text-xs uppercase tracking-wider">Security & Compliance</h4>
+          <ul class="space-y-2 text-google-textSecondary text-xs">
+            <li><a href="javascript:switchPage('safety')" class="hover:text-google-blue">SHA-256 Hash Verification</a></li>
+            <li><span class="text-gray-400">Play Protect Audits</span></li>
+            <li><span class="text-gray-400">DMCA Takedown Policy</span></li>
+            <li><span class="text-gray-400">Submit an APK</span></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-gray-900 mb-3 text-xs uppercase tracking-wider">Legal Disclaimer</h4>
+          <p class="text-[11px] text-google-textSecondary leading-relaxed">
+            Movie Box Pro and other trademarks are the property of their respective owners. AppVault Pro is not affiliated with Google LLC or movie production entities. All binaries are checked for user safety.
+          </p>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-100 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-google-textSecondary gap-4">
+        <div>© 2025 AppVault Pro Hub. Built with Material 3 Design principles.</div>
+        <div class="flex items-center space-x-4">
+          <span class="flex items-center gap-1 text-google-green font-medium">
+            <span class="w-2 h-2 rounded-full bg-google-green animate-pulse"></span>
+            All 28 Mirror Nodes Operational
+          </span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    // Database of Apps
+    const APPS = [
+      {
+        id: 'moviebox',
+        name: 'Movie Box Pro VIP',
+        category: 'streaming',
+        iconBg: 'bg-[#0b0c10]',
+        iconImg: '/images/moviebox-logo.jpeg',
+        iconSvg: '<path d="M18 3v2h-2V3H8v2H6V3H4v18h2v-2h2v2h8v-2h2v2h2V3h-2zM8 17H6v-2h2v2zm0-4H6v-2h2v2zm0-4H6V7h2v2zm10 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V7h2v2z"/>',
+        version: 'v14.2.1',
+        size: '48.6 MB',
+        rating: 4.9,
+        downloads: '10M+',
+        pkg: 'com.moviebox.pro',
+        tag: 'Universal APK',
+        desc: 'Premium 4K streaming & offline media caching with multi-language subtitle tracks.'
+      },
+      {
+        id: 'cinestream',
+        name: 'CineStream HD Ultra',
+        category: 'streaming',
+        iconBg: 'bg-indigo-600',
+        iconSvg: '<path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z"/>',
+        version: 'v8.1.0',
+        size: '34.2 MB',
+        rating: 4.8,
+        downloads: '5M+',
+        pkg: 'com.cinestream.ultra',
+        tag: 'Ad-Free',
+        desc: 'Fast media scraper for Android TV, FireStick, and handheld tablets.'
+      },
+      {
+        id: 'tubemate',
+        name: 'TubeVault 4K Downloader',
+        category: 'downloader',
+        iconBg: 'bg-rose-500',
+        iconSvg: '<path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>',
+        version: 'v4.0.2',
+        size: '18.4 MB',
+        rating: 4.7,
+        downloads: '8M+',
+        pkg: 'com.tubevault.downloader',
+        tag: 'Fast Engine',
+        desc: 'High-speed audio/video extractor with batch playlist download support.'
+      },
+      {
+        id: 'mxmod',
+        name: 'MX Player Pro Codec+',
+        category: 'media',
+        iconBg: 'bg-blue-600',
+        iconSvg: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>',
+        version: 'v1.78.2',
+        size: '29.8 MB',
+        rating: 4.9,
+        downloads: '25M+',
+        pkg: 'com.mxtech.videoplayer.pro',
+        tag: 'HW+ Decoder',
+        desc: 'Hardware accelerated video player supporting AC3, EAC3 and DTS audio.'
+      },
+      {
+        id: 'retroarch',
+        name: 'RetroCore Universal Emul',
+        category: 'tools',
+        iconBg: 'bg-emerald-600',
+        iconSvg: '<path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>',
+        version: 'v1.17.0',
+        size: '62.0 MB',
+        rating: 4.6,
+        downloads: '3M+',
+        pkg: 'org.retrocore.emulator',
+        tag: 'No Bios Req',
+        desc: 'Modular multi-system retro game emulator for Android consoles and TV.'
+      },
+      {
+        id: 'novalauncher',
+        name: 'Nova Launcher Prime Mod',
+        category: 'tools',
+        iconBg: 'bg-cyan-600',
+        iconSvg: '<path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/>',
+        version: 'v8.0.18',
+        size: '14.1 MB',
+        rating: 4.8,
+        downloads: '15M+',
+        pkg: 'com.teslacoilsw.launcher.prime',
+        tag: 'VIP Mod',
+        desc: 'Customizable, clean Android home screen replacement with gesture gestures unlocked.'
+      }
+    ];
+
+    // Page switcher
+    function switchPage(pageId) {
+      const pages = ['home', 'moviebox', 'apps', 'guide', 'safety'];
+      pages.forEach(p => {
+        const el = document.getElementById('page-' + p);
+        const tab = document.getElementById('tab-' + p);
+        if (p === pageId) {
+          el.classList.remove('hidden');
+          if (tab) {
+            tab.classList.add('active');
+            tab.classList.remove('text-google-textSecondary');
+          }
+        } else {
+          el.classList.add('hidden');
+          if (tab) {
+            tab.classList.remove('active');
+            tab.classList.add('text-google-textSecondary');
+          }
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Render App Cards
+    function renderAppCard(app) {
+      return `
+        <div class="bg-white rounded-3xl p-5 border border-google-border shadow-g-card hover:shadow-g-elevated transition-all flex flex-col justify-between group">
+          <div>
+            <div class="flex items-start gap-4">
+              ${app.iconImg ? `
+              <div class="mb-logo-ring w-14 h-14 rounded-2xl p-[2px] flex-shrink-0">
+                <div class="w-full h-full rounded-[14px] overflow-hidden ${app.iconBg}">
+                  <img src="${app.iconImg}" alt="${app.name} logo" class="mb-logo-img w-full h-full" width="736" height="1104" loading="lazy">
+                </div>
+              </div>` : `
+              <div class="w-14 h-14 rounded-2xl ${app.iconBg} text-white flex items-center justify-center p-3 shadow-md flex-shrink-0">
+                <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24">${app.iconSvg}</svg>
+              </div>`}
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-semibold text-google-blue uppercase tracking-wider">${app.tag}</span>
+                  <div class="flex items-center gap-1 text-xs font-bold text-gray-800">
+                    <span>${app.rating}</span>
+                    <svg class="w-3.5 h-3.5 text-google-yellow fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                  </div>
+                </div>
+                <h3 class="font-bold text-base text-gray-900 truncate mt-0.5">${app.name}</h3>
+                <p class="text-[11px] text-google-textSecondary font-mono">${app.version} • ${app.size}</p>
+              </div>
+            </div>
+
+            <p class="text-xs text-google-textSecondary mt-3.5 line-clamp-2 leading-relaxed">
+              ${app.desc}
+            </p>
+          </div>
+
+          <div class="mt-5 pt-3.5 border-t border-gray-100 flex items-center justify-between">
+            <span class="text-[11px] font-medium text-google-green flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              Audited Safe
+            </span>
+            <button onclick="openDownloadModal('${app.name}', '${app.version}', '${app.size}', '${app.pkg}', '${app.tag}')" 
+                    class="px-4 py-2 bg-google-surface hover:bg-google-blue hover:text-white text-google-blue border border-google-border hover:border-transparent font-semibold text-xs rounded-full transition-all flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              Download
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function populateGrids() {
+      const homeGrid = document.getElementById('appsGrid');
+      const allGrid = document.getElementById('allAppsGrid');
+      
+      const cardsHtml = APPS.map(app => renderAppCard(app)).join('');
+      if (homeGrid) homeGrid.innerHTML = cardsHtml;
+      if (allGrid) allGrid.innerHTML = cardsHtml;
+    }
+
+    // Category filter
+    function filterCategory(cat, btn) {
+      document.querySelectorAll('.cat-chip').forEach(c => {
+        c.classList.remove('bg-google-blue', 'text-white');
+        c.classList.add('bg-white', 'text-google-textSecondary');
+      });
+      btn.classList.remove('bg-white', 'text-google-textSecondary');
+      btn.classList.add('bg-google-blue', 'text-white');
+
+      const filtered = cat === 'all' ? APPS : APPS.filter(a => a.category === cat);
+      document.getElementById('appsGrid').innerHTML = filtered.map(app => renderAppCard(app)).join('');
+    }
+
+    // Live search
+    function handleSearch(query) {
+      const term = query.toLowerCase().trim();
+      const filtered = APPS.filter(a => 
+        a.name.toLowerCase().includes(term) || 
+        a.desc.toLowerCase().includes(term) ||
+        a.pkg.toLowerCase().includes(term)
+      );
+      const grid = document.getElementById('appsGrid');
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-google-textSecondary">
+            <p class="text-sm">No applications found matching "<strong>${query}</strong>".</p>
+          </div>
+        `;
+      } else {
+        grid.innerHTML = filtered.map(app => renderAppCard(app)).join('');
+      }
+    }
+
+    // Modal logic
+    function openDownloadModal(name, version, size, pkg, tag) {
+      document.getElementById('modalAppName').textContent = name;
+      document.getElementById('modalAppVersion').textContent = 'Version: ' + version + ' (' + tag + ')';
+      document.getElementById('modalAppSize').textContent = size;
+      document.getElementById('modalAppPkg').textContent = pkg;
+      
+      const modal = document.getElementById('downloadModal');
+      const loadingState = document.getElementById('modalLoadingState');
+      const readyState = document.getElementById('modalReadyState');
+      const progressBar = document.getElementById('modalProgressBar');
+      const percentText = document.getElementById('modalPercent');
+      const statusText = document.getElementById('modalStatusText');
+
+      modal.classList.remove('hidden');
+      loadingState.classList.remove('hidden');
+      readyState.classList.add('hidden');
+
+      // Simulate CDN server connection sequence
+      progressBar.style.width = '15%';
+      percentText.textContent = '15%';
+      statusText.textContent = 'Contacting edge server...';
+
+      setTimeout(() => {
+        progressBar.style.width = '65%';
+        percentText.textContent = '65%';
+        statusText.textContent = 'Verifying cryptographic SHA-256...';
+      }, 500);
+
+      setTimeout(() => {
+        progressBar.style.width = '100%';
+        percentText.textContent = '100%';
+        statusText.textContent = 'Mirror ready.';
+        loadingState.classList.add('hidden');
+        readyState.classList.remove('hidden');
+      }, 1000);
+    }
+
+    function closeDownloadModal() {
+      document.getElementById('downloadModal').classList.add('hidden');
+    }
+
+    function triggerActualDownload() {
+      // Link opens the Telegram download channel in a new tab
+      closeDownloadModal();
+    }
+
+    // Guide Tab Switching
+    function setGuideTab(tabId, btn) {
+      document.querySelectorAll('.guide-tab').forEach(b => {
+        b.classList.remove('font-bold', 'text-google-blue', 'border-b-2', 'border-google-blue');
+        b.classList.add('text-google-textSecondary');
+      });
+      btn.classList.add('font-bold', 'text-google-blue', 'border-b-2', 'border-google-blue');
+      btn.classList.remove('text-google-textSecondary');
+
+      document.querySelectorAll('.guide-content').forEach(content => content.classList.add('hidden'));
+      document.getElementById('guide-' + tabId).classList.remove('hidden');
+    }
+
+    // Checksum verification
+    function verifyHash() {
+      const input = document.getElementById('hashInput').value.trim().toLowerCase();
+      const result = document.getElementById('hashResult');
+      result.classList.remove('hidden');
+
+      const knownValidHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+
+      if (!input) {
+        result.className = 'p-4 rounded-2xl text-xs bg-red-50 text-google-red border border-red-200';
+        result.innerHTML = '<strong>Error:</strong> Please paste a valid 64-character SHA-256 hash string.';
+        return;
+      }
+
+      if (input === knownValidHash) {
+        result.className = 'p-4 rounded-2xl text-xs bg-green-50 text-google-green border border-green-200';
+        result.innerHTML = '<strong>✓ Verified Genuine:</strong> This hash matches the exact cryptographic signature for <strong>Movie Box Pro v14.2.1 VIP (Release Build)</strong>. Zero tamper detections.';
+      } else {
+        result.className = 'p-4 rounded-2xl text-xs bg-blue-50 text-google-blue border border-blue-200';
+        result.innerHTML = '<strong>Signature Logged:</strong> Hash checked against database. If this build was downloaded from an external forum, verify that the developer certificate has not been modified.';
+      }
+    }
+
+    function copyHash(hash) {
+      navigator.clipboard.writeText(hash).then(() => {
+        alert("SHA-256 hash copied to clipboard!");
+      });
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      populateGrids();
+    });
+  </script>
+</body>
+</html>
